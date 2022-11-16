@@ -29,26 +29,27 @@ def get_listings_from_search_results(html_file):
     title_list =[]
     cost_list = []
     id_list = []
-    tup_list = []
+    listing_list = []
 
     with open(html_file, encoding = "utf-8") as f:
         soup = BeautifulSoup(f, 'html.parser')
         title = soup.find_all('div', class_ = "t1jojoys dir dir-ltr")
-        for data in title:
-            title_list.append(data.text.strip())
+        for x in title:
+            item = x.text.strip()
+            title_list.append(item)
         cost = soup.find_all('span', class_ = "_tyxjp1")
-        for data in cost:
-            cost_list.append(int(data.text.strip('$')))
+        for x in cost:
+            item = x.text.strip('$')
+            cost_list.append(int(item))
         id = soup.find_all('div', class_ = "t1jojoys dir dir-ltr")
-        for data in id:
-            data_list = data.get('id')
-            spread = data_list.strip()
-            extend = spread.split('_')
-            id_list.append(extend[-1])
+        for x in id:
+            data_list = x.get('id')
+            item = data_list.strip().split('_')
+            id_list.append(item[-1])
         for x in range(len(title_list)):
-            tup_list.append((title_list[x]), cost_list[x], id_list[x])
+            listing_list.append((title_list[x], cost_list[x], id_list[x]))
         
-        return tup_list
+        return listing_list
 
 
 def get_listing_information(listing_id):
@@ -75,7 +76,46 @@ def get_listing_information(listing_id):
         number of bedrooms
     )
     """
+    url_html = "html_files/listing_" + listing_id + ".html"
+    with open(url_html, encoding = "utf-8") as f:
+        filename = f.read()
+        soup = BeautifulSoup(filename, 'html.parser')
+        #create my soup object
+        policy_number = soup.find('li', class_ = "f19phm7j dir dir-ltr").find('span').text
+        place_type = soup.find('h2', class_ = "_14i3z6h").text
+        bedrooms = soup.find_all(class_= "l7n4lsf dir dir-ltr")[1].text
+        #set up all of the files needed to parse through
+        
+        #policies
+        #scan for exempt, pending, or just number
+        if policy_number.lower() == "pending":
+            newpolicy = "Pending"
+        elif policy_number.lower() == "exempt":
+            newpolicy = "Exempt"
+        else:
+            newpolicy = policy_number
+        
+        #places
+        #scan for Entire room, Private Room or shared Room
+        if "private" in place_type.lower():
+            place = "Private Room"
+        elif "shared" in place_type.lower():
+            place = "Shared Room"
+        else:
+            place = "Entire Room"
+
+        #rooms
+        if "studio" in bedrooms.lower():
+            bedrooms = 1
+        else:
+            #use regex to find any number of rooms greater than 1
+            reg_ex = r'(\d+)'
+            bedrooms = int(re.findall(reg_ex, bedrooms)[0])
+        
+        return (policy_number, place_type, bedrooms)
+
     pass
+
 
 
 def get_detailed_listing_database(html_file):
@@ -93,13 +133,17 @@ def get_detailed_listing_database(html_file):
     ]
     """
     information = get_listings_from_search_results(html_file)
-    info_value = []
+    complete_listing_info= []
     for x in information:
         i = x[2]
+        #second index is the type of room
         listing_info = get_listing_information(i)
-        tup = (x[0], x[1], x[2], listing_info[0], listing_info[1], listing_info[2])
-        info_value.append(tup)
-    return info_value
+        listing_values = (x[0], x[1], x[2])
+        extra_info = (listing_info[0], listing_info[1], listing_info[2])
+        combined_tuple = (listing_values, extra_info)
+       # newtup = (x[0], x[1], x[2], listing_info[0], listing_info[1], listing_info[2])
+        complete_listing_info.append(combined_tuple)
+    return complete_listing_info
 
 
 def write_csv(data, filename):
@@ -154,7 +198,17 @@ def check_policy_numbers(data):
     """
     policy_numbers = []
     for x in data:
-        x = data[3]
+        newpolicy = x[3]
+        #Policy number is the third index of returned data from detailed_listing
+        expression = r'(20\d{2}-00\d{4}STR)|(STR-000\d{4})|(Exempt)|(Pending)'
+        valid_listings = re.findall(expression, newpolicy)
+        #if it is correct we can just keep going through
+        if valid_listings:
+            continue
+        else:
+            #only take the bad ones
+            policy_numbers.append(x[2])
+    return policy_numbers
         
 
 
