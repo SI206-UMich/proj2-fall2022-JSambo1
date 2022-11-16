@@ -4,7 +4,8 @@ import re
 import os
 import csv
 import unittest
-
+#Jack Sambursky
+#Worked with: Jason Kemp, Christopher Sayah
 
 def get_listings_from_search_results(html_file):
     """
@@ -25,7 +26,29 @@ def get_listings_from_search_results(html_file):
         ('Loft in Mission District', 210, '1944564'),  # example
     ]
     """
-    pass
+    title_list =[]
+    cost_list = []
+    id_list = []
+    tup_list = []
+
+    with open(html_file, encoding = "utf-8") as f:
+        soup = BeautifulSoup(f, 'html.parser')
+        title = soup.find_all('div', class_ = "t1jojoys dir dir-ltr")
+        for data in title:
+            title_list.append(data.text.strip())
+        cost = soup.find_all('span', class_ = "_tyxjp1")
+        for data in cost:
+            cost_list.append(int(data.text.strip('$')))
+        id = soup.find_all('div', class_ = "t1jojoys dir dir-ltr")
+        for data in id:
+            data_list = data.get('id')
+            spread = data_list.strip()
+            extend = spread.split('_')
+            id_list.append(extend[-1])
+        for x in range(len(title_list)):
+            tup_list.append((title_list[x]), cost_list[x], id_list[x])
+        
+        return tup_list
 
 
 def get_listing_information(listing_id):
@@ -69,7 +92,14 @@ def get_detailed_listing_database(html_file):
         ...
     ]
     """
-    pass
+    information = get_listings_from_search_results(html_file)
+    info_value = []
+    for x in information:
+        i = x[2]
+        listing_info = get_listing_information(i)
+        tup = (x[0], x[1], x[2], listing_info[0], listing_info[1], listing_info[2])
+        info_value.append(tup)
+    return info_value
 
 
 def write_csv(data, filename):
@@ -94,7 +124,13 @@ def write_csv(data, filename):
 
     This function should not return anything.
     """
-    pass
+    with open(filename, 'w', newline = '') as fh:
+        writer = csv.writer(fh)
+        header = ["Listing Title", "Cost", "Listing ID", "Policy Number", "Place Type", "Number of Bedrooms"]
+        writer.writerow(header)
+        sort = sorted(data, key = lambda x: int(x[1]))
+        for x in sort:
+            writer.writerow(x)
 
 
 def check_policy_numbers(data):
@@ -116,7 +152,9 @@ def check_policy_numbers(data):
     ]
 
     """
-    pass
+    policy_numbers = []
+    #for x in data:
+        
 
 
 def extra_credit(listing_id):
@@ -147,7 +185,7 @@ class TestCases(unittest.TestCase):
         # check that the variable you saved after calling the function is a list
         self.assertEqual(type(listings), list)
         # check that each item in the list is a tuple
-
+        
         # check that the first title, cost, and listing id tuple is correct (open the search results html and find it)
 
         # check that the last title is correct (open the search results html and find it)
