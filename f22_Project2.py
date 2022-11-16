@@ -34,14 +34,17 @@ def get_listings_from_search_results(html_file):
     with open(html_file, encoding = "utf-8") as f:
         soup = BeautifulSoup(f, 'html.parser')
         title = soup.find_all('div', class_ = "t1jojoys dir dir-ltr")
+        #create and add to the title list
         for x in title:
             item = x.text.strip()
             title_list.append(item)
         cost = soup.find_all('span', class_ = "_tyxjp1")
+        #create and add to the cost list
         for x in cost:
             item = x.text.strip('$')
             cost_list.append(int(item))
         id = soup.find_all('div', class_ = "t1jojoys dir dir-ltr")
+        #create and add to the id list
         for x in id:
             data_list = x.get('id')
             item = data_list.strip().split('_')
@@ -88,9 +91,9 @@ def get_listing_information(listing_id):
         
         #policies
         #scan for exempt, pending, or just number
-        if policy_number.lower() == "pending":
+        if "pending" in policy_number.lower():
             newpolicy = "Pending"
-        elif policy_number.lower() == "exempt":
+        elif "exempt" in policy_number.lower() or "not" in policy_number.lower():
             newpolicy = "Exempt"
         else:
             newpolicy = policy_number
@@ -138,11 +141,9 @@ def get_detailed_listing_database(html_file):
         i = x[2]
         #second index is the type of room
         listing_info = get_listing_information(i)
-        listing_values = (x[0], x[1], x[2])
-        extra_info = (listing_info[0], listing_info[1], listing_info[2])
-        combined_tuple = (listing_values, extra_info)
-       # newtup = (x[0], x[1], x[2], listing_info[0], listing_info[1], listing_info[2])
-        complete_listing_info.append(combined_tuple)
+        #create the tuple to hold all of the information
+        newtup = (x[0], x[1], x[2], listing_info[0], listing_info[1], listing_info[2])
+        complete_listing_info.append(newtup)
     return complete_listing_info
 
 
