@@ -115,7 +115,8 @@ def get_listing_information(listing_id):
             reg_ex = r'(\d+)'
             bedrooms = int(re.findall(reg_ex, bedrooms)[0])
         
-        return (policy_number, place_type, bedrooms)
+        #must use the new values
+        return (newpolicy, place, bedrooms)
 
     pass
 
@@ -204,8 +205,8 @@ def check_policy_numbers(data):
         expression = r'(20\d{2}-00\d{4}STR)|(STR-000\d{4})|(Exempt)|(Pending)'
         valid_listings = re.findall(expression, newpolicy)
         #if it is correct we can just keep going through
-        if valid_listings:
-            continue
+        if  valid_listings:
+             continue
         else:
             #only take the bad ones
             policy_numbers.append(x[2])
@@ -242,12 +243,12 @@ class TestCases(unittest.TestCase):
         self.assertEqual(type(listings), list)
         # check that each item in the list is a tuple
         for item in listings:
-            self.assertEqual(tuple, type(item))
+            self.assertEqual(type(item), tuple)
         
         # check that the first title, cost, and listing id tuple is correct (open the search results html and find it)
-        self.assertEqual(listings[0],('Loft in Mission District'), 210, '1944564')
+        self.assertEqual(listings[0],('Loft in Mission District', 210, '1944564'))
         # check that the last title is correct (open the search results html and find it)
-        self.asserEqual([-1][0], 'Guest suite in Mission District')
+        self.assertEqual([-1][0], 'Guest suite in Mission District')
         pass
 
     def test_get_listing_information(self):
@@ -322,7 +323,7 @@ class TestCases(unittest.TestCase):
         self.assertEqual(csv_lines[1], ["Private room in Mission District", "82", "51027324", "Pending", "Private Room", "1" ])
 
         # check that the last row is Apartment in Mission District,399,28668414,Pending,Entire Room,2
-        self.assertEqual(csv_lines[1], ["Apartment in Mission District", "399", "28668414", "Pending", "Entire Room", "2" ])
+        self.assertEqual(csv_lines[20], ["Apartment in Mission District", "399", "28668414", "Pending", "Entire Room", "2" ])
 
 
         pass
